@@ -1,47 +1,71 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using vendor_Management.Context;
+using vendor_Management.Dto;
 using vendor_Management.Model;
 
 namespace vendor_Management.Services
 {
     public class VendorService : IVendorService
     {
-        public readonly AppDbContext _dbContext;
+        private readonly AppDbContext _dbContext;
+
         public VendorService(AppDbContext dbContext)
         {
             _dbContext = dbContext;
         }
-        public List<Vendor> GettAllVendors()
-        {
-            return _dbContext.vendors.ToList();
-        }
-        public List<Vendor> GetVendorById(int id)
-        {
-            return _dbContext.vendors.Where(x => x.Id == id).ToList();
 
-        }
-        public void AddVendors(Vendor vendor)
+        public async Task<List<Vendor>> GetAllVendorsAsync()
         {
-            _dbContext.vendors.Add(vendor);
-            _dbContext.SaveChanges();
-        }
-        public void DeleteVendors(int id)
-        {
-            var vender = _dbContext.vendors.FirstOrDefault(x => x.Id == id);
-            _dbContext.vendors.Remove(vender);
-            _dbContext.SaveChanges();
-        }
-        public void UpdateVedors(int id, Vendor vendor)
-        {
-            var existingVender= _dbContext.vendors.FirstOrDefault(vender => vender.Id == id);
-            existingVender.PAN= vendor.PAN;
-            existingVender.VendorGroup= vendor.VendorGroup;
-            existingVender.VendorGroupId= vendor.VendorGroupId;
-            existingVender.FinanceVendorId= vendor.FinanceVendorId;
-            existingVender.VendorDescription= vendor.VendorDescription;
-            _dbContext.SaveChanges();
+            return await _dbContext.vendors.ToListAsync();
         }
 
+        public async Task<Vendor?> GetVendorByIdAsync(int id)
+        {
+            return await _dbContext.vendors.FirstOrDefaultAsync(x => x.Id == id);
+        }
 
+        public async Task AddVendorAsync(VendorCreatingDto vendorCreatingDto)
+        {
+            var vendor = new Vendor
+            {
+                PAN = vendorCreatingDto.PAN,
+                VendorDescription = vendorCreatingDto.VendorDescription,
+                FinanceVendorId = vendorCreatingDto.FinanceVendorId,
+                VendorGroup = vendorCreatingDto.VendorGroup,
+                VendorGroupId = vendorCreatingDto.VendorGroupId
+            };
+
+            await _dbContext.vendors.AddAsync(vendor);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteVendorAsync(int id)
+        {
+            var vendor = await _dbContext.vendors.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (vendor == null)
+                return false;
+
+            _dbContext.vendors.Remove(vendor);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateVendorAsync(int id, VendorCreatingDto vendorCreatingDto)
+        {
+            var existingVendor = await _dbContext.vendors.FirstOrDefaultAsync(v => v.Id == id);
+
+            if (existingVendor == null)
+                return false;
+
+            existingVendor.PAN = vendorCreatingDto.PAN;
+            existingVendor.VendorGroup = vendorCreatingDto.VendorGroup;
+            existingVendor.VendorGroupId = vendorCreatingDto.VendorGroupId;
+            existingVendor.FinanceVendorId = vendorCreatingDto.FinanceVendorId;
+            existingVendor.VendorDescription = vendorCreatingDto.VendorDescription;
+
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
     }
 }

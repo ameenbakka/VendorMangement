@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using vendor_Management.Dto;
 using vendor_Management.Model;
 using vendor_Management.Services;
 
@@ -9,47 +9,173 @@ namespace vendor_Management.Controllers
     [ApiController]
     public class VendorController : ControllerBase
     {
-        public readonly IVendorService _vendorService;
-        public VendorController(IVendorService vendorService) {
+        private readonly IVendorService _vendorService;
+
+        public VendorController(IVendorService vendorService)
+        {
             _vendorService = vendorService;
         }
 
-
+        // Get all vendors
         [HttpGet]
-        public ActionResult<IEnumerable<Vendor>> GetAllVendor()
+        public async Task<IActionResult> GetAllVendors()
         {
-
-            return _vendorService.GettAllVendors();
-
-        }
-        [HttpGet("{id}")]
-        public ActionResult<Vendor> GetVendorById(int id)
-        {
-            var vendor= _vendorService.GetVendorById(id);
-            if (vendor == null)
+            try
             {
-                return NotFound();
+                var vendors = await _vendorService.GetAllVendorsAsync();
+
+                return Ok(new ApiResponse<IEnumerable<Vendor>>(
+                    vendors,
+                    vendors.Any() ? "Vendors retrieved successfully" : "No vendors found",
+                    true
+                ));
             }
-            return Ok(vendor);
-        }
-        [HttpPost]
-        public IActionResult CreateVendor(Vendor vendor)
-        {
-            _vendorService.AddVendors(vendor);
-            return Ok("Vendor added successfully");
-        }
-        [HttpPut("{id}")]
-        public IActionResult UpdateVendor(int id,Vendor vendor)
-        {
-            _vendorService.UpdateVedors(id, vendor);
-            return Ok("Vendor Data updated");
-        }
-        [HttpDelete("{id}")]
-        public IActionResult UpdateVendor(int id)
-        {
-            _vendorService.DeleteVendors(id);
-            return Ok("Vendor Deleted Successfully");
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    "Failed to fetch vendors",
+                    false,
+                    ex.Message
+                ));
+            }
         }
 
+        // Get vendor by ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetVendorById(int id)
+        {
+            try
+            {
+                var vendor = await _vendorService.GetVendorByIdAsync(id);
+
+                if (vendor == null)
+                {
+                    return NotFound(new ApiResponse<string>(
+                        null,
+                        $"Vendor with ID {id} not found",
+                        false
+                    ));
+                }
+
+                return Ok(new ApiResponse<Vendor>(
+                    vendor,
+                    "Vendor retrieved successfully",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    "Failed to fetch vendor",
+                    false,
+                    ex.Message
+                ));
+            }
+        }
+
+        // Create vendor
+        [HttpPost("Create")]
+        public async Task<IActionResult> CreateVendor([FromBody] VendorCreatingDto vendor)
+        {
+            try
+            {
+                if (vendor == null)
+                {
+                    return BadRequest(new ApiResponse<string>(
+                        null,
+                        "Invalid vendor data",
+                        false,
+                        "Vendor object cannot be null"
+                    ));
+                }
+
+                await _vendorService.AddVendorAsync(vendor);
+
+                return Ok(new ApiResponse<Vendor>(
+                    vendor,
+                    "Vendor created successfully",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    "Failed to create vendor",
+                    false,
+                    ex.Message
+                ));
+            }
+        }
+
+        // Update vendor
+        [HttpPut("Update/{id}")]
+        public async Task<IActionResult> UpdateVendor(int id, [FromBody] Vendor vendor)
+        {
+            try
+            {
+                var updated = await _vendorService.UpdateVendorAsync(id, vendor);
+
+                if (!updated)
+                {
+                    return NotFound(new ApiResponse<string>(
+                        null,
+                        $"Vendor with ID {id} not found",
+                        false
+                    ));
+                }
+
+                return Ok(new ApiResponse<Vendor>(
+                    vendor,
+                    "Vendor updated successfully",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    "Failed to update vendor",
+                    false,
+                    ex.Message
+                ));
+            }
+        }
+
+        // Delete vendor
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> DeleteVendor(int id)
+        {
+            try
+            {
+                var deleted = await _vendorService.DeleteVendorAsync(id);
+
+                if (!deleted)
+                {
+                    return NotFound(new ApiResponse<string>(
+                        null,
+                        $"Vendor with ID {id} not found",
+                        false
+                    ));
+                }
+
+                return Ok(new ApiResponse<string>(
+                    null,
+                    "Vendor deleted successfully",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    "Failed to delete vendor",
+                    false,
+                    ex.Message
+                ));
+            }
+        }
     }
 }

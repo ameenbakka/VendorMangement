@@ -1,12 +1,13 @@
-﻿using vendor_Management.Model;
+﻿using vendor_Management.Dto;
+using vendor_Management.Model;
 namespace vendor_Management.Services
 {
     public interface IVendorService
     {
-        public List<Vendor>  GettAllVendors();
-        public List<Vendor> GetVendorById(int id);
-        public void AddVendors(Vendor vendor);
-        public void UpdateVedors(int id, Vendor vendor);
-        public void DeleteVendors(int id);
+        Task<List<Vendor>> GetAllVendorsAsync();
+        Task<Vendor?> GetVendorByIdAsync(int id);
+        Task AddVendorAsync(VendorCreatingDto vendorCreatingDto);
+        Task<bool> UpdateVendorAsync(int id, VendorCreatingDto vendorCreatingDto);
+        Task<bool> DeleteVendorAsync(int id);
     }
 }

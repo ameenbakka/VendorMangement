@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using vendor_Management.Dto;
 using vendor_Management.Model;
 using vendor_Management.Services;
 
@@ -9,29 +9,100 @@ namespace vendor_Management.Controllers
     [ApiController]
     public class ContactController : ControllerBase
     {
-        public readonly IContactService _contactService;
+        private readonly IContactService _contactService;
+
         public ContactController(IContactService contactService)
         {
             _contactService = contactService;
         }
-        [HttpGet]
-        public ActionResult<IEnumerable<VendorContactPerson>> GetAllPerson()
+
+        // Get all contact persons
+        [HttpGet("All")]
+        public async Task<IActionResult> GetAllPersons()
         {
+            try
+            {
+                var persons = await _contactService.GetAllPersonsAsync();
 
-            return _contactService.GettAllPersons();
-
+                return Ok(new ApiResponse<IEnumerable<VendorContactPerson>>(
+                    persons,
+                    persons.Any() ? "Contact persons retrieved successfully" : "No contact persons found",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(null, $"Failed to fetch contact persons: {ex.Message}", false));
+            }
         }
+
+        // Create new contact person
+        [HttpPost("Create")]
         [HttpPost]
-        public IActionResult createPerson(VendorContactPerson vendorContactPerson)
+        public async Task<IActionResult> CreatePerson([FromBody] ContactCreatingDto contactCreatingDto)
         {
-            _contactService.AddPerson(vendorContactPerson);
-            return Ok("Vendor added successfully");
+            try
+            {
+                if (contactCreatingDto == null)
+                {
+                    return BadRequest(new ApiResponse<string>(
+                        null,
+                        "Invalid request",
+                        false,
+                        "VendorContactPerson cannot be null"
+                    ));
+                }
+
+                var createdPerson = await _contactService.AddPersonAsync(contactCreatingDto);
+
+                return Ok(new ApiResponse<VendorContactPerson>(
+                    createdPerson,
+                    "Vendor contact person added successfully",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    $"Failed to add vendor contact person: {ex.Message}",
+                    false
+                ));
+            }
         }
-        [HttpDelete("{id}")]
-        public IActionResult UpdatePerson(int id)
+
+
+        // Delete contact person
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> DeletePerson(int id)
         {
-            _contactService.DeletePerson(id);
-            return Ok("Vendor Deleted Successfully");
+            try
+            {
+                var deleted = await _contactService.DeletePersonAsync(id);
+
+                if (!deleted)
+                {
+                    return NotFound(new ApiResponse<string>(
+                        null,
+                        $"Vendor contact person with id {id} not found",
+                        false
+                    ));
+                }
+
+                return Ok(new ApiResponse<int>(
+                    id,
+                    $"Vendor contact person with id {id} deleted successfully",
+                    true
+                ));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(
+                    null,
+                    $"Failed to delete vendor contact person: {ex.Message}",
+                    false
+                ));
+            }
         }
     }
 }

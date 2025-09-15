@@ -1,30 +1,50 @@
-﻿using System.Numerics;
+﻿using Microsoft.EntityFrameworkCore;
 using vendor_Management.Context;
+using vendor_Management.Dto;
 using vendor_Management.Model;
 
 namespace vendor_Management.Services
 {
     public class ContactService : IContactService
     {
-        public readonly AppDbContext _dbContext;
+        private readonly AppDbContext _dbContext;
+
         public ContactService(AppDbContext dbContext)
         {
             _dbContext = dbContext;
         }
-        public List<VendorContactPerson> GettAllPersons()
+
+        public async Task<List<VendorContactPerson>> GetAllPersonsAsync()
         {
-            return _dbContext.contactPerson.ToList();
+            return await _dbContext.contactPerson.ToListAsync();
         }
-        public void AddPerson(VendorContactPerson vendorContactPerson)
+
+        public async Task AddPersonAsync(ContactCreatingDto contactCreatingDto)
         {
-            _dbContext.contactPerson.Add(vendorContactPerson);
-            _dbContext.SaveChanges();
+            var entity = new VendorContactPerson
+            {
+                Name = contactCreatingDto.Name,
+                ContactEmail = contactCreatingDto.ContactEmail,
+                ContactNo = contactCreatingDto.ContactNo,
+                VendorId = contactCreatingDto.VendorId
+                // map other fields here
+            };
+
+            await _dbContext.contactPerson.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
         }
-        public void DeletePerson(int id)
+
+
+        public async Task<bool> DeletePersonAsync(int id)
         {
-            var vender = _dbContext.vendors.FirstOrDefault(x => x.Id == id);
-            _dbContext.vendors.Remove(vender);
-            _dbContext.SaveChanges();
+            var person = await _dbContext.contactPerson.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (person == null)
+                return false;
+
+            _dbContext.contactPerson.Remove(person);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
     }
 }

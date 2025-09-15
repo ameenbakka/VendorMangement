@@ -1,12 +1,12 @@
-﻿using vendor_Management.Model;
+﻿using vendor_Management.Dto;
+using vendor_Management.Model;
 
 namespace vendor_Management.Services
 {
     public interface IContactService
     {
-        public List<VendorContactPerson> GettAllPersons();
-        public void AddPerson(VendorContactPerson vendorContactPerson);
-        public void DeletePerson(int id);
-
+        Task<List<VendorContactPerson>> GetAllPersonsAsync();
+        Task AddPersonAsync(ContactCreatingDto contactCreatingDto);
+        Task<bool> DeletePersonAsync(int id);
     }
 }
