@@ -6,7 +6,7 @@ namespace vendor_Management.Services
     public interface IContactService
     {
         Task<List<VendorContactPerson>> GetAllPersonsAsync();
-        Task AddPersonAsync(ContactCreatingDto contactCreatingDto);
+        Task<VendorContactPerson> AddPersonAsync(ContactCreatingDto contactCreatingDto);
         Task<bool> DeletePersonAsync(int id);
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using vendor_Management.Dto;
 using vendor_Management.Model;
 using vendor_Management.Services;
@@ -17,92 +19,46 @@ namespace vendor_Management.Controllers
         }
 
         // Get all contact persons
-        [HttpGet("All")]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAllPersons()
         {
-            try
+            var persons = await _contactService.GetAllPersonsAsync();
+            if (persons == null || !persons.Any())
             {
-                var persons = await _contactService.GetAllPersonsAsync();
-
-                return Ok(new ApiResponse<IEnumerable<VendorContactPerson>>(
-                    persons,
-                    persons.Any() ? "Contact persons retrieved successfully" : "No contact persons found",
-                    true
-                ));
+                return NotFound("No contact persons found");
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<string>(null, $"Failed to fetch contact persons: {ex.Message}", false));
-            }
+            return Ok(persons);
         }
 
         // Create new contact person
-        [HttpPost("Create")]
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreatePerson([FromBody] ContactCreatingDto contactCreatingDto)
         {
-            try
+            if (contactCreatingDto == null)
             {
-                if (contactCreatingDto == null)
-                {
-                    return BadRequest(new ApiResponse<string>(
-                        null,
-                        "Invalid request",
-                        false,
-                        "VendorContactPerson cannot be null"
-                    ));
-                }
-
-                var createdPerson = await _contactService.AddPersonAsync(contactCreatingDto);
-
-                return Ok(new ApiResponse<VendorContactPerson>(
-                    createdPerson,
-                    "Vendor contact person added successfully",
-                    true
-                ));
+                return BadRequest("Invalid contact person data.");
             }
-            catch (Exception ex)
+
+            var createdPerson = await _contactService.AddPersonAsync(contactCreatingDto);
+            if (createdPerson == null)
             {
-                return BadRequest(new ApiResponse<string>(
-                    null,
-                    $"Failed to add vendor contact person: {ex.Message}",
-                    false
-                ));
+                return BadRequest("Failed to create contact person.");
             }
+
+            return Ok("Contact person created successfully");
         }
 
-
         // Delete contact person
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeletePerson(int id)
         {
-            try
+            bool deleted = await _contactService.DeletePersonAsync(id);
+            if (!deleted)
             {
-                var deleted = await _contactService.DeletePersonAsync(id);
-
-                if (!deleted)
-                {
-                    return NotFound(new ApiResponse<string>(
-                        null,
-                        $"Vendor contact person with id {id} not found",
-                        false
-                    ));
-                }
-
-                return Ok(new ApiResponse<int>(
-                    id,
-                    $"Vendor contact person with id {id} deleted successfully",
-                    true
-                ));
+                return NotFound($"Contact person with ID {id} not found");
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<string>(
-                    null,
-                    $"Failed to delete vendor contact person: {ex.Message}",
-                    false
-                ));
-            }
+
+            return Ok("Contact person deleted successfully");
         }
     }
 }

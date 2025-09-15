@@ -6,7 +6,7 @@ namespace vendor_Management.Services
     {
         Task<List<Vendor>> GetAllVendorsAsync();
         Task<Vendor?> GetVendorByIdAsync(int id);
-        Task AddVendorAsync(VendorCreatingDto vendorCreatingDto);
+        Task<Vendor> AddVendorAsync(VendorCreatingDto dto);
         Task<bool> UpdateVendorAsync(int id, VendorCreatingDto vendorCreatingDto);
         Task<bool> DeleteVendorAsync(int id);
     }

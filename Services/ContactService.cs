@@ -19,7 +19,7 @@ namespace vendor_Management.Services
             return await _dbContext.contactPerson.ToListAsync();
         }
 
-        public async Task AddPersonAsync(ContactCreatingDto contactCreatingDto)
+        public async Task<VendorContactPerson> AddPersonAsync(ContactCreatingDto contactCreatingDto)
         {
             var entity = new VendorContactPerson
             {
@@ -27,11 +27,11 @@ namespace vendor_Management.Services
                 ContactEmail = contactCreatingDto.ContactEmail,
                 ContactNo = contactCreatingDto.ContactNo,
                 VendorId = contactCreatingDto.VendorId
-                // map other fields here
             };
 
             await _dbContext.contactPerson.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
+            return entity;
         }
 
 

@@ -24,20 +24,21 @@ namespace vendor_Management.Services
             return await _dbContext.vendors.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task AddVendorAsync(VendorCreatingDto vendorCreatingDto)
+        public async Task<Vendor> AddVendorAsync(VendorCreatingDto dto)
         {
             var vendor = new Vendor
             {
-                PAN = vendorCreatingDto.PAN,
-                VendorDescription = vendorCreatingDto.VendorDescription,
-                FinanceVendorId = vendorCreatingDto.FinanceVendorId,
-                VendorGroup = vendorCreatingDto.VendorGroup,
-                VendorGroupId = vendorCreatingDto.VendorGroupId
+                PAN = dto.PAN,
+                VendorDescription = dto.VendorDescription,
+                FinanceVendorId = dto.FinanceVendorId,
+                VendorGroup = dto.VendorGroup
             };
 
-            await _dbContext.vendors.AddAsync(vendor);
+            _dbContext.vendors.Add(vendor);
             await _dbContext.SaveChangesAsync();
+            return vendor;
         }
+
 
         public async Task<bool> DeleteVendorAsync(int id)
         {
