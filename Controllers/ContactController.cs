@@ -18,7 +18,7 @@ namespace vendor_Management.Controllers
             _contactService = contactService;
         }
 
-        // Get all contact persons
+   
         [HttpGet("all")]
         public async Task<IActionResult> GetAllPersons()
         {
@@ -30,7 +30,7 @@ namespace vendor_Management.Controllers
             return Ok(persons);
         }
 
-        // Create new contact person
+    
         [HttpPost("create")]
         public async Task<IActionResult> CreatePerson([FromBody] ContactCreatingDto contactCreatingDto)
         {
@@ -48,7 +48,7 @@ namespace vendor_Management.Controllers
             return Ok("Contact person created successfully");
         }
 
-        // Delete contact person
+      
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeletePerson(int id)
         {
